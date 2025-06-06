@@ -1,17 +1,17 @@
-# Imagen oficial de Puppeteer con Chromium ya instalado
-FROM ghcr.io/puppeteer/puppeteer:latest
+# Dockerfile corregido
+FROM node:18-alpine
 
-# Establece el directorio de trabajo
 WORKDIR /app
-
-# Copia todos los archivos
-COPY . .
-
-# Instala las dependencias
+COPY package.json package-lock.json ./
 RUN npm install
 
-# Expone el puerto para Render
-EXPOSE 3000
+COPY . .
+# Puppeteer necesitará Chromium; en Alpine a veces hay que añadir 'chromium' y dependencias de librerías:
+RUN apk add --no-cache chromium nss
 
-# Comando para iniciar la app
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PORT=3000
+
+EXPOSE 3000
 CMD ["node", "index.js"]
