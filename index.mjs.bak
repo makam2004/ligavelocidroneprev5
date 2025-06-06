@@ -1,13 +1,13 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-// import dotenv from 'dotenv';        // <-- si no lo usas, puedes dejarlo así comentado
+#import dotenv from 'dotenv';
 import adminRoutes from './routes/admin.js';
 import tiemposRoutes from './routes/tiemposMejorados.js';
 import configRoutes from './routes/configuracion.js';
 // (Si tienes más rutas, impórtalas aquí)
 
-// dotenv.config();                   // <-- si quieres cargar .env, comenta así
+#dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,10 +25,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Rutas
 app.use(adminRoutes);            // /admin/update-tracks
 app.use(tiemposRoutes);          // /api/tiempos-mejorados
-app.use(configRoutes);           // /api/obtener-config  (¡esto es necesario!)
 
+// (Opcional) Ruta de salud: 
 app.get('/health', (req, res) => res.send('OK'));
 
+// Arrancar servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
