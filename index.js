@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 #import dotenv from 'dotenv';
 import adminRoutes from './routes/admin.js';
 import tiemposRoutes from './routes/tiemposMejorados.js';
+import configRoutes from './routes/configuracion.js';
 // (Si tienes más rutas, impórtalas aquí)
 
 #dotenv.config();

@@ -1,4 +1,5 @@
 // routes/admin.js
+
 import express from 'express';
 import supabase from '../supabaseClient.js';
 
@@ -6,35 +7,36 @@ const router = express.Router();
 
 router.post('/admin/update-tracks', async (req, res) => {
   try {
-    // 1) Desestructuramos todos los campos del body:
     const {
       track1_escena,
       track1_pista,
       track2_escena,
       track2_pista,
 
-      // TRACK NO OFICIAL #1
+      // Nuevos campos – Track NoOficial #1
       trackUnof1_id,
       trackUnof1_protected,
       trackUnof1_nombre,
       trackUnof1_escenario,
 
-      // TRACK NO OFICIAL #2
+      // Nuevos campos – Track NoOficial #2
       trackUnof2_id,
       trackUnof2_protected,
       trackUnof2_nombre,
       trackUnof2_escenario
     } = req.body;
 
-    // 2) Convertimos "protected" (string) a booleano
-    const _trackUnof1_protected = trackUnof1_protected === 'true';
-    const _trackUnof2_protected = trackUnof2_protected === 'true';
+    // Convertir "protected" de string a booleano
+    const _trackUnof1_protected = (trackUnof1_protected === 'true');
+    const _trackUnof2_protected = (trackUnof2_protected === 'true');
 
-    // 3) Hacemos upsert en Supabase
+    // Upsert en tabla configuracion
     const { error: errUpsert } = await supabase
       .from('configuracion')
       .upsert([{
         id: 1,
+
+        // Tracks oficiales
         track1_escena,
         track1_pista,
         track2_escena,
@@ -56,7 +58,6 @@ router.post('/admin/update-tracks', async (req, res) => {
       }], { onConflict: ['id'] });
 
     if (errUpsert) throw errUpsert;
-
     return res.json({ ok: true });
   } catch (err) {
     console.error('❌ Error en /admin/update-tracks:', err.message);

@@ -1,74 +1,74 @@
-!DOCTYPE html
-html lang=es
-head
-  meta charset=UTF-8 
-  meta name=viewport content=width=device-width, initial-scale=1 
-  titleAdmin Velocidronetitle
-  link rel=stylesheet href=styles.css  !-- Opcional --
-head
-body
-  h1Panel de Administraciónh1
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Velocidrone</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Panel de Administración</h1>
 
-  form id=formTracks
-    h3Tracks “Oficiales”h3
-    labelTrack 1 – Escenario ID
-      input name=track1_escena type=number required 
-    label
-    labelTrack 1 – Pista ID
-      input name=track1_pista type=number required 
-    label
+  <form id="formTracks">
+    <h3>Tracks “Oficiales”</h3>
+    <label>Track 1 – Escenario ID:
+      <input name="track1_escena" type="number" required />
+    </label>
+    <label>Track 1 – Pista ID:
+      <input name="track1_pista" type="number" required />
+    </label>
 
-    labelTrack 2 – Escenario ID
-      input name=track2_escena type=number required 
-    label
-    labelTrack 2 – Pista ID
-      input name=track2_pista type=number required 
-    label
+    <label>Track 2 – Escenario ID:
+      <input name="track2_escena" type="number" required />
+    </label>
+    <label>Track 2 – Pista ID:
+      <input name="track2_pista" type="number" required />
+    </label>
 
-    hr
+    <hr>
 
-    h3Track “No Oficial” #1 (opcional)h3
-    labelTrackUnof1 – Pista ID
-      input name=trackUnof1_id type=number placeholder=Ej 2541 
-    label
-    labelTrackUnof1 – Tabla protegida
-      select name=trackUnof1_protected
-        option value=true1 (Leaderboard Oficial)option
-        option value=false selected0 (User Leaderboard)option
-      select
-    label
-    labelTrackUnof1 – Nombre (texto)
-      input name=trackUnof1_nombre type=text placeholder=Mi Track NoOficial 
-    label
-    labelTrackUnof1 – Escenario (texto)
-      input name=trackUnof1_escenario type=text placeholder=Mi Escenario X 
-    label
+    <h3>Track “No Oficial” #1 (opcional)</h3>
+    <label>TrackUnof1 – Pista ID:
+      <input name="trackUnof1_id" type="number" placeholder="Ej: 2541" />
+    </label>
+    <label>TrackUnof1 – Tabla protegida:
+      <select name="trackUnof1_protected">
+        <option value="true">1 (Leaderboard Oficial)</option>
+        <option value="false" selected>0 (User Leaderboard)</option>
+      </select>
+    </label>
+    <label>TrackUnof1 – Nombre (texto):
+      <input name="trackUnof1_nombre" type="text" placeholder="Mi Track NoOficial" />
+    </label>
+    <label>TrackUnof1 – Escenario (texto):
+      <input name="trackUnof1_escenario" type="text" placeholder="Mi Escenario X" />
+    </label>
 
-    hr
+    <hr>
 
-    h3Track “No Oficial” #2 (opcional)h3
-    labelTrackUnof2 – Pista ID
-      input name=trackUnof2_id type=number placeholder=Ej 2730 
-    label
-    labelTrackUnof2 – Tabla protegida
-      select name=trackUnof2_protected
-        option value=true1 (Leaderboard Oficial)option
-        option value=false selected0 (User Leaderboard)option
-      select
-    label
-    labelTrackUnof2 – Nombre (texto)
-      input name=trackUnof2_nombre type=text placeholder=Otro Track NoOficial 
-    label
-    labelTrackUnof2 – Escenario (texto)
-      input name=trackUnof2_escenario type=text placeholder=Otro Escenario 
-    label
+    <h3>Track “No Oficial” #2 (opcional)</h3>
+    <label>TrackUnof2 – Pista ID:
+      <input name="trackUnof2_id" type="number" placeholder="Ej: 2730" />
+    </label>
+    <label>TrackUnof2 – Tabla protegida:
+      <select name="trackUnof2_protected">
+        <option value="true">1 (Leaderboard Oficial)</option>
+        <option value="false" selected>0 (User Leaderboard)</option>
+      </select>
+    </label>
+    <label>TrackUnof2 – Nombre (texto):
+      <input name="trackUnof2_nombre" type="text" placeholder="Otro Track NoOficial" />
+    </label>
+    <label>TrackUnof2 – Escenario (texto):
+      <input name="trackUnof2_escenario" type="text" placeholder="Otro Escenario" />
+    </label>
 
-    hr
+    <hr>
 
-    button type=submitActualizar Tracks y NoOficialesbutton
-    div id=mensajeActualizarTracks style=margin-top10px;div
-  form
+    <button type="submit">Actualizar Tracks y NoOficiales</button>
+    <div id="mensajeActualizarTracks" style="margin-top:10px;"></div>
+  </form>
 
-  script src=admin.jsscript
-body
-html
+  <script src="admin.js"></script>
+</body>
+</html>
