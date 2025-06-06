@@ -1,15 +1,142 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Velocidrone - Rankings Mejorados</title>
-  <link rel="stylesheet" href="styles.css" /> <!-- Opcional: si usas CSS -->
+  <meta charset="UTF-8">
+  <title>LIGA VELOCIDRONE</title>
+  <link rel="stylesheet" href="main.css" />
+  <style>
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001;
+      background: #fff;
+      color: #000;
+      padding: 20px;
+      border-radius: 8px;
+      display: none;
+      box-shadow: 0 0 15px rgba(0,0,0,0.6);
+    }
+    #overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      display: none;
+    }
+    .popup button {
+      background-color: #ff4444;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #popupTips {
+      width: 80%;
+      max-width: 1000px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    #popupTips button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1002;
+    }
+  </style>
 </head>
 <body>
-  <h1>Velocidrone - Ranking de Tiempos</h1>
-  <div id="contenedorResultados"></div>
+  <div class="top-bar">
+    <div class="top-left">
+      <button id="btnReglamento">📘 Reglamento</button>
+      <button id="btnTips" onclick="cargarTipsPopup()">💡 Tips y Trucos</button>
+    </div>
+    <div class="top-center">
+      <h1 id="tituloSemana">LIGA VELOCIDRONE</h1>
+    </div>
+    <div class="top-right">
+      <button id="btnAlta">➕ Alta de Piloto</button>
+      <a href="https://t.me/ligasemanalvelocidron" target="_blank" id="telegramIcon">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram">
+      </a>
+    </div>
+  </div>
 
-  <script src="main.js"></script>
+  <div id="overlay" class="overlay" onclick="cerrarPopups()"></div>
+
+  <div class="container">
+    <div id="mejoras" class="track-row">⏳ Leyendo resultados...</div>
+    <div class="ranking-row">
+      <div id="rankingSemanal" class="card">
+        <h3>Ranking Semanal</h3>
+        <div class="resultado"></div>
+      </div>
+      <div id="rankingAnual" class="card">
+        <h3>Ranking Anual</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Piloto</th>
+              <th>Puntos</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-anual-body">
+            <tr>
+              <td colspan="3">Cargando ranking anual…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popups -->
+  <div id="popup" class="popup">
+    <h3>📘 Reglamento</h3>
+    <button onclick="cerrarPopups()" style="float:right;">✖</button>
+    <div id="popupTexto"></div>
+  </div>
+
+  <div id="popupAlta" class="popup">
+    <h3>Alta de piloto</h3>
+    <button onclick="cerrarPopups()" style="float:right;">✖</button>
+    <form onsubmit="registrarJugador(event)">
+      <input
+        id="nombreJugador"
+        type="text"
+        placeholder="Nombre del Piloto en Velocidrone"
+        required
+        style="width:100%;padding:10px;margin-top:10px;"
+      />
+      <div class="h-captcha" data-sitekey="8ac62e84-891a-4d2e-b8a0-e39aabb4b246"></div>
+      <button type="submit" style="margin-top:10px;">Registrar</button>
+    </form>
+    <div id="mensajeAlta" style="margin-top:10px;color:green;"></div>
+  </div>
+
+  <div id="popupTips" class="popup">
+    <h3>💡 Tips y Trucos</h3>
+    <button onclick="cerrarPopups()">✖</button>
+    <div id="popupTipsContenido" style="margin-top: 40px;"></div>
+  </div>
+
+  <script>
+    function cerrarPopups() {
+      ['popup', 'popupAlta', 'popupTips', 'overlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+    }
+  </script>
+
+  <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="supabaseClient.js"></script>
+  <script src="Ranking.js"></script>
+  <script src="tips_popup.js"></script>
+  <script src="main.js" defer></script>
 </body>
 </html>
