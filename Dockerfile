@@ -1,17 +1,29 @@
-# Imagen oficial de Puppeteer con Chromium ya instalado
-FROM ghcr.io/puppeteer/puppeteer:latest
+# Dockerfile
 
-# Establece el directorio de trabajo
+FROM node:20-bullseye-slim
+
 WORKDIR /app
 
-# Copia todos los archivos
-COPY . .
+# 1) Copiamos package.json
+COPY package.json ./
 
-# Instala las dependencias
+# 2) Instalamos dependencias
 RUN npm install
 
-# Expone el puerto para Render
+# 3) Copiamos el resto del código (incluyendo index.js e index.mjs)
+COPY . .
+
+# 4) Instalamos Chromium para Puppeteer
+RUN apt-get update \
+ && apt-get install -y chromium \
+ && rm -rf /var/lib/apt/lists/*
+
+# 5) Variables para Puppeteer
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PORT=3000
+
 EXPOSE 3000
 
-# Comando para iniciar la app
+# 6) Ahora arrancamos index.js, pero éste importará index.mjs
 CMD ["node", "index.js"]
