@@ -1,12 +1,12 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
+#import dotenv from 'dotenv';
 import adminRoutes from './routes/admin.js';
 import tiemposRoutes from './routes/tiemposMejorados.js';
 // (Si tienes más rutas, impórtalas aquí)
 
-dotenv.config();
+#dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
