@@ -37,8 +37,8 @@ router.get('/api/obtener-config', async (req, res) => {
     //      async function scrapeNombreEscenarioYPista(escenaId, pistaId) { ... }
     //    y devuelve { nombreEscenario, nombrePista }.
     //    Ajusta estos nombres a la función exacta que ya tenías.
-  track1_escena: config.track1_escena,
-  track1_pista:  config.track1_pista,
+    const track1 = await scrapeNombreEscenarioYPista(config.track1_escena, config.track1_pista);
+    const track2 = await scrapeNombreEscenarioYPista(config.track2_escena, config.track2_pista);
 
     // 3) Devolver en JSON todos los campos: 
     return res.json({
