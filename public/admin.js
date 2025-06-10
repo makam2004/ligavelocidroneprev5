@@ -1,105 +1,125 @@
 // public/admin.js
 
-document.addEventListener('DOMContentLoaded', () => {
-  const formTracks = document.getElementById('formTracks');
-  const mensajeDiv = document.getElementById('mensajeActualizarTracks');
+// 1) Referencias al DOM
+const formTracks    = document.getElementById('formTracks');
+const mensajeTracks = document.getElementById('mensaje');
+const mensajeCommit = document.getElementById('mensajeCommit');
+const canvasTop3    = document.getElementById('canvasTop3');
+const ctxTop3       = canvasTop3.getContext('2d');
 
-  cargarConfiguracionInicial();
+// 2) Función auxiliar para calcular la semana actual
+function calcularSemanaActual() {
+  const fecha = new Date();
+  const inicio = new Date(fecha.getFullYear(), 0, 1);
+  const dias = Math.floor((fecha - inicio) / 86400000);
+  return Math.ceil((dias + inicio.getDay() + 1) / 7);
+}
 
-  formTracks.onsubmit = async (e) => {
-    e.preventDefault();
+// 3) Obtener Top 3 de cada pista (Track 1 y Track 2) desde /api/tiempos-mejorados
+async function obtenerTop3Pilotos() {
+  const res = await fetch('/api/tiempos-mejorados');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
 
-    const formData = new FormData(formTracks);
+  if (!Array.isArray(data)) throw new Error('Datos inválidos de tiempos');
 
-    // Tracks oficiales
-    const track1_escena = formData.get('track1_escena');
-    const track1_pista  = formData.get('track1_pista');
-    const track2_escena = formData.get('track2_escena');
-    const track2_pista  = formData.get('track2_pista');
+  const top3Track1 = [];
+  const top3Track2 = [];
 
-    // Track NoOficial #1
-    const trackUnof1_id        = formData.get('trackUnof1_id');
-    const trackUnof1_protected = formData.get('trackUnof1_protected');
-    const trackUnof1_nombre    = formData.get('trackUnof1_nombre');
-    const trackUnof1_escenario = formData.get('trackUnof1_escenario');
+  // Aquí usamos la estructura de los datos que nos llega
+  if (data.length > 0) {
+    // Ordenamos los datos por mejor_tiempo y los primeros 3 se convierten en el Top 3
+    data.slice(0, 3).forEach((r) => {
+      const nombreJugador = r.jugador_id;  // O donde tienes el nombre real
+      const tiempo = r.mejor_tiempo;
+      top3Track1.push(`${nombreJugador}: ${tiempo} s`);
+    });
+  } else {
+    console.warn("No se encontraron resultados para Track 1");
+  }
 
-    // Track NoOficial #2
-    const trackUnof2_id        = formData.get('trackUnof2_id');
-    const trackUnof2_protected = formData.get('trackUnof2_protected');
-    const trackUnof2_nombre    = formData.get('trackUnof2_nombre');
-    const trackUnof2_escenario = formData.get('trackUnof2_escenario');
+  return { top3Track1, top3Track2 };
+}
 
-    try {
-      const res = await fetch('/admin/update-tracks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          // Tracks oficiales
-          track1_escena,
-          track1_pista,
-          track2_escena,
-          track2_pista,
+// 4) Función auxiliar para extraer ID de YouTube
+function obtenerYouTubeID(url) {
+  const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
 
-          // Track NoOficial #1
-          trackUnof1_id,
-          trackUnof1_protected,
-          trackUnof1_nombre,
-          trackUnof1_escenario,
+// 5) Al cambiar el campo URL, actualizamos el iframe
+tipUrlInput.addEventListener('input', () => {
+  const url = tipUrlInput.value.trim();
+  const videoID = obtenerYouTubeID(url);
 
-          // Track NoOficial #2
-          trackUnof2_id,
-          trackUnof2_protected,
-          trackUnof2_nombre,
-          trackUnof2_escenario
-        })
-      });
-
-      const json = await res.json();
-      if (json.ok) {
-        mensajeDiv.innerHTML = '<span style="color:green">✓ Configuración actualizada correctamente.</span>';
-      } else {
-        mensajeDiv.innerHTML = `<span style="color:red">✗ Error: ${json.error}</span>`;
-      }
-    } catch (err) {
-      console.error('Error al actualizar tracks:', err);
-      mensajeDiv.innerHTML = `<span style="color:red">✗ Error al conectar con el servidor.</span>`;
-    }
-  };
-
-  // Precargar valores actuales en el formulario (para editar)
-  async function cargarConfiguracionInicial() {
-    try {
-      const res = await fetch('/api/obtener-config');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const config = await res.json();
-      if (!config) return;
-
-      // Rellenar tracks oficiales
-      document.querySelector('input[name="track1_escena"]').value = config.track1_escena || '';
-      document.querySelector('input[name="track1_pista"]').value  = config.track1_pista  || '';
-      document.querySelector('input[name="track2_escena"]').value = config.track2_escena || '';
-      document.querySelector('input[name="track2_pista"]').value  = config.track2_pista  || '';
-
-      // Rellenar Track NoOficial #1 si existe
-      if (config.trackUnof1_id !== null && config.trackUnof1_id !== undefined) {
-        document.querySelector('input[name="trackUnof1_id"]').value        = config.trackUnof1_id;
-        document.querySelector('select[name="trackUnof1_protected"]').value = config.trackUnof1_protected ? 'true' : 'false';
-        document.querySelector('input[name="trackUnof1_nombre"]').value     = config.trackUnof1_nombre;
-        document.querySelector('input[name="trackUnof1_escenario"]').value = config.trackUnof1_escenario;
-      }
-
-      // Rellenar Track NoOficial #2 si existe
-      if (config.trackUnof2_id !== null && config.trackUnof2_id !== undefined) {
-        document.querySelector('input[name="trackUnof2_id"]').value        = config.trackUnof2_id;
-        document.querySelector('select[name="trackUnof2_protected"]').value = config.trackUnof2_protected ? 'true' : 'false';
-        document.querySelector('input[name="trackUnof2_nombre"]').value     = config.trackUnof2_nombre;
-        document.querySelector('input[name="trackUnof2_escenario"]').value = config.trackUnof2_escenario;
-      }
-
-    } catch (err) {
-      // No mostrar error si no existe configuración aún;
-      // en un entorno nuevo puede que aún no haya nada guardado.
-      console.warn('No se pudo cargar configuración inicial:', err);
-    }
+  if (videoID) {
+    // Construir la URL de embed
+    tipIframe.src = `https://www.youtube.com/embed/${videoID}`;
+    tipIframe.style.display = 'block';
+  } else {
+    tipIframe.src = '';
+    tipIframe.style.display = 'none';
   }
 });
+
+// 6) Manejar envío del formulario de “Agregar Tip”
+formAgregarTip.onsubmit = async (e) => {
+  e.preventDefault();
+  mensajeAgregarTip.style.color = 'white';
+  mensajeAgregarTip.textContent = '🔄 Subiendo tip…';
+
+  try {
+    await ensureSupabase();
+
+    // 6.1) Leer campos
+    const titulo = tipTitleInput.value.trim();
+    const url    = tipUrlInput.value.trim();
+    const tipo   = tipTypeInput.value.trim() || 'youtube';
+    if (!titulo || !url) throw new Error('Título y URL son obligatorios.');
+
+    // 6.2) Generar ID aleatorio
+    let id;
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      id = crypto.randomUUID();
+    } else {
+      id = String(Date.now()) + Math.floor(Math.random() * 1000);
+    }
+    // 6.3) Fecha actual en ISO
+    const fecha = new Date().toISOString();
+
+    // 6.4) Insertar en Supabase
+    const { data, error } = await supabaseClient
+      .from('tips')
+      .insert([{ id, titulo, url, tipo, fecha }]);
+
+    if (error) throw error;
+
+    // 6.5) Enviar notificación a Telegram
+    mensajeAgregarTip.textContent = '🔄 Enviando notificación a Telegram…';
+    const respTelegram = await fetch('/api/send-tip-telegram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ titulo, url, tipo, fecha })
+    });
+    const jsonTelegram = await respTelegram.json();
+    if (!jsonTelegram.ok) throw new Error(jsonTelegram.error || 'Error al enviar a Telegram');
+
+    // 6.6) Mostrar éxito y cerrar popup
+    mensajeAgregarTip.style.color = 'lightgreen';
+    mensajeAgregarTip.textContent = '✅ Tip agregado y notificado a Telegram.';
+
+    if (window.cargarTipsPopup) {
+      await window.cargarTipsPopup();
+    }
+    setTimeout(() => {
+      popupAgregarTip.style.display = 'none';
+      overlayAgregarTip.style.display = 'none';
+    }, 1000);
+
+  } catch (err) {
+    console.error('Error agregando tip:', err);
+    mensajeAgregarTip.style.color = 'red';
+    mensajeAgregarTip.textContent = `❌ ${err.message}`;
+  }
+};

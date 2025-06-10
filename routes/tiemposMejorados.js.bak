@@ -1,39 +1,48 @@
 // routes/tiemposMejorados.js
+
 import express from 'express';
 import puppeteer from 'puppeteer';
 import supabase from '../supabaseClient.js';
-import fetch from 'node-fetch'; // node-fetch v3
+import fetch from 'node-fetch';
 
 const router = express.Router();
 
-// ─────────────────────────────────────────────────────────────────────────────────
-// Función auxiliar: scrapea un track oficial con Puppeteer
-//   - Puedes ajustar el contenido de esta función a la implementación que tenías
-//   - Debe devolver un array de objetos con { pista, escenario, jugador, tiempo, modelo, pais }
-// ─────────────────────────────────────────────────────────────────────────────────
-async function obtenerResultadosScrape(escenarioId, pistaId) {
-  // Aquí iría tu lógica de Puppeteer tal como la tenías:
-  // - Abrir puppeteer
-  // - Navegar a la URL construida con escenarioId/pistaId
-  // - Extraer los nombres, tiempos, modelos, países, etc.
-  // - Cerrar navegador y devolver el array de resultados
-
-  // Ejemplo simplificado (devuelve array vacío para que no rompa):
-  return [];
+/**
+ * Calcula el número de semana actual (1–53) a partir de la fecha.
+ */
+function calcularSemanaActual() {
+  const now = new Date();
+  const oneJan = new Date(now.getFullYear(), 0, 1);
+  return Math.ceil((((now - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────────
-// Función auxiliar: consultar la API de Velocidrone para un “track no oficial”
-// ─────────────────────────────────────────────────────────────────────────────────
+/**
+ * Scrapea un track oficial dado su escenarioId y pistaId.
+ * Debe devolver { nombreEscenario, nombrePista, resultados: Array<{ jugador, tiempo, ... }> }.
+ * Se asume que esta función ya existía en tu proyecto y no debe cambiarse.
+ */
+async function obtenerResultados(url, nombresJugadores, textoPestania) {
+  // Tu lógica de Puppeteer para abrir navegador, navegar a `url`,
+  // seleccionar la pestaña `textoPestania`, leer la tabla de resultados,
+  // convertir cada fila en { jugador, tiempo, modelo, country, etc. }.
+  // Devuelve un objeto: { resultados: [ { jugador: 'Player1', tiempo: 83.456, ... }, ... ] }
+  // No modifiques esta función.
+  // …
+}
+
+/**
+ * Llama a la API de Velocidrone para obtener los tres mejores tiempos de un track no oficial.
+ * Devuelve un array de objetos { jugador, tiempo, modelo, pais }.
+ */
 async function obtenerResultadosAPI(trackId, protectedTrackValue, nombreTrack, escenario, raceMode = 3) {
-  const simVersion = '1.16'; // Ajustar si tu servidor usa otra versión
+  const simVersion = '1.16';
   const urlApi = 'https://velocidrone.co.uk/api/leaderboard';
   const postData =
     `track_id=${trackId}` +
     `&sim_version=${simVersion}` +
     `&offset=0` +
-    `&count=3` +                // Top 3 tiempos
-    `&race_mode=${raceMode}` +  // 3 = 1 vuelta
+    `&count=3` +
+    `&race_mode=${raceMode}` +
     `&protected_track_value=${protectedTrackValue ? 1 : 0}`;
 
   const response = await fetch(urlApi, {
@@ -53,24 +62,27 @@ async function obtenerResultadosAPI(trackId, protectedTrackValue, nombreTrack, e
   const data = await response.json();
   if (!data.tracktimes || data.tracktimes.length === 0) return [];
 
-  // Mapear cada entrada al formato que usa el front-end
   return data.tracktimes.map(r => ({
-    pista:     nombreTrack,
-    escenario: escenario,
-    jugador:   r.playername,
-    tiempo:    r.lap_time,
-    modelo:    r.model_name,
-    pais:      r.country
+    jugador: r.playername,
+    tiempo:  r.lap_time,      // cadena "00:01:23.456"
+    modelo:  r.model_name,
+    pais:    r.country
   }));
 }
 
-// ─────────────────────────────────────────────────────────────────────────────────
-// Ruta: GET /api/tiempos-mejorados
-// ─────────────────────────────────────────────────────────────────────────────────
-router.get('/api/tiempos-mejorados', async (req, res) => {
+router.get('/api/tiempos-mejorados', async (_req, res) => {
   try {
-    // 1) Obtener la fila de configuración (id = 1)
-    const { data: config, error: errConf } = await supabase
+    const semana = calcularSemanaActual();
+
+    // 1) Obtener todos los jugadores para construir nombre→id
+    const { data: jugadores, error: errorJugadores } = await supabase
+      .from('jugadores')
+      .select('id, nombre');
+    if (errorJugadores) throw errorJugadores;
+    const nombreToId = Object.fromEntries(jugadores.map(j => [j.nombre, j.id]));
+
+    // 2) Leer configuración completa
+    const { data: config, error: errorConfig } = await supabase
       .from('configuracion')
       .select(`
         track1_escena,
@@ -89,59 +101,79 @@ router.get('/api/tiempos-mejorados', async (req, res) => {
         trackUnof2_escenario
       `)
       .eq('id', 1)
-      .single();
-    if (errConf) throw errConf;
-    if (!config) return res.json([]);
+      .maybeSingle();
+    if (errorConfig || !config) throw errorConfig || new Error('Sin configuración');
 
-    // 2) Arreglo donde acumularemos todos los resultados
+    // 3) Preparar URLs y nombres para los tracks oficiales
+    const urlsOficiales = [
+      {
+        url: `https://www.velocidrone.com/leaderboard/${config.track1_escena}/${config.track1_pista}/All`,
+        pestaña: 'Race Mode: Single Class',
+        nombre: `Oficial ${config.track1_escena}-${config.track1_pista}`
+      },
+      {
+        url: `https://www.velocidrone.com/leaderboard/${config.track2_escena}/${config.track2_pista}/All`,
+        pestaña: '3 Lap: Single Class',
+        nombre: `Oficial ${config.track2_escena}-${config.track2_pista}`
+      }
+    ];
+
+    // 4) Array donde acumularemos todos los resultados
     const todo = [];
 
-    // ———————————— A) Scraping para tracks oficiales ————————————
-    if (config.track1_escena && config.track1_pista) {
-      const resultados1 = await obtenerResultadosScrape(
-        config.track1_escena,
-        config.track1_pista
-      );
-      resultados1.forEach(r => todo.push(r));
-    }
-    if (config.track2_escena && config.track2_pista) {
-      const resultados2 = await obtenerResultadosScrape(
-        config.track2_escena,
-        config.track2_pista
-      );
-      resultados2.forEach(r => todo.push(r));
+    // 4A) SCRAPING para tracks oficiales
+    for (const { url, pestaña, nombre } of urlsOficiales) {
+      const { resultados } = await obtenerResultados(url, Object.keys(nombreToId), pestaña);
+      resultados.forEach(r => {
+        todo.push({
+          piloto: r.jugador,
+          track:  nombre,
+          tiempo: r.tiempo
+        });
+      });
     }
 
-    // ———————————— B) API para Track NoOficial #1 ————————————
+    // 4B) Si existe TrackNoOficial #1 en configuración, llamar a la API
     if (config.trackUnof1_id) {
-      const arrUnof1 = await obtenerResultadosAPI(
+      const resultadosApi1 = await obtenerResultadosAPI(
         config.trackUnof1_id,
         config.trackUnof1_protected,
-        config.trackUnof1_nombre,
-        config.trackUnof1_escenario,
-        3 // race_mode = 3 (1 vuelta)
-      );
-      arrUnof1.forEach(x => todo.push(x));
-    }
-
-    // ———————————— C) API para Track NoOficial #2 ————————————
-    if (config.trackUnof2_id) {
-      const arrUnof2 = await obtenerResultadosAPI(
-        config.trackUnof2_id,
-        config.trackUnof2_protected,
-        config.trackUnof2_nombre,
-        config.trackUnof2_escenario,
+        config.trackUnof1_nombre || `NoOficial ${config.trackUnof1_id}`,
+        config.trackUnof1_escenario || '',
         3
       );
-      arrUnof2.forEach(x => todo.push(x));
+      resultadosApi1.forEach(r => {
+        todo.push({
+          piloto: r.jugador,
+          track:  config.trackUnof1_nombre || `NoOficial ${config.trackUnof1_id}`,
+          tiempo: r.tiempo
+        });
+      });
     }
 
-    // 3) Devolver JSON con todos los resultados
-    return res.json(todo);
+    // 4C) Si existe TrackNoOficial #2 en configuración, llamar a la API
+    if (config.trackUnof2_id) {
+      const resultadosApi2 = await obtenerResultadosAPI(
+        config.trackUnof2_id,
+        config.trackUnof2_protected,
+        config.trackUnof2_nombre || `NoOficial ${config.trackUnof2_id}`,
+        config.trackUnof2_escenario || '',
+        3
+      );
+      resultadosApi2.forEach(r => {
+        todo.push({
+          piloto: r.jugador,
+          track:  config.trackUnof2_nombre || `NoOficial ${config.trackUnof2_id}`,
+          tiempo: r.tiempo
+        });
+      });
+    }
 
+    // 5) Devolver todos los resultados
+    return res.json(todo);
   } catch (err) {
     console.error('❌ Error en /api/tiempos-mejorados:', err);
-    return res.status(500).json({ ok: false, error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 

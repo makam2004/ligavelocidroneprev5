@@ -4,13 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const formTracks = document.getElementById('formTracks');
   const mensajeDiv = document.getElementById('mensajeActualizarTracks');
 
-  // Cargar datos iniciales en el formulario (opcional)
   cargarConfiguracionInicial();
 
   formTracks.onsubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData(formTracks);
+
     // Tracks oficiales
     const track1_escena = formData.get('track1_escena');
     const track1_pista  = formData.get('track1_pista');
@@ -34,22 +34,26 @@ document.addEventListener('DOMContentLoaded', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          // Tracks oficiales
           track1_escena,
           track1_pista,
           track2_escena,
           track2_pista,
 
+          // Track NoOficial #1
           trackUnof1_id,
           trackUnof1_protected,
           trackUnof1_nombre,
           trackUnof1_escenario,
 
+          // Track NoOficial #2
           trackUnof2_id,
           trackUnof2_protected,
           trackUnof2_nombre,
           trackUnof2_escenario
         })
       });
+
       const json = await res.json();
       if (json.ok) {
         mensajeDiv.innerHTML = '<span style="color:green">✓ Configuración actualizada correctamente.</span>';
@@ -62,30 +66,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Función opcional para precargar datos desde Supabase (si quieres)
+  // Precargar valores actuales en el formulario (para editar)
   async function cargarConfiguracionInicial() {
     try {
-      const res = await fetch('/api/obtener-config'); // Punto de acceso que devuelva fila config
+      const res = await fetch('/api/obtener-config');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const config = await res.json();
       if (!config) return;
 
-      // Rellenar campos "oficiales"
+      // Rellenar tracks oficiales
       document.querySelector('input[name="track1_escena"]').value = config.track1_escena || '';
       document.querySelector('input[name="track1_pista"]').value  = config.track1_pista  || '';
       document.querySelector('input[name="track2_escena"]').value = config.track2_escena || '';
       document.querySelector('input[name="track2_pista"]').value  = config.track2_pista  || '';
 
-      // Rellenar campos “NoOficial1” 
-      if (config.trackUnof1_id !== null) {
+      // Rellenar Track NoOficial #1 si existe
+      if (config.trackUnof1_id !== null && config.trackUnof1_id !== undefined) {
         document.querySelector('input[name="trackUnof1_id"]').value        = config.trackUnof1_id;
         document.querySelector('select[name="trackUnof1_protected"]').value = config.trackUnof1_protected ? 'true' : 'false';
         document.querySelector('input[name="trackUnof1_nombre"]').value     = config.trackUnof1_nombre;
         document.querySelector('input[name="trackUnof1_escenario"]').value = config.trackUnof1_escenario;
       }
 
-      // Rellenar campos “NoOficial2”
-      if (config.trackUnof2_id !== null) {
+      // Rellenar Track NoOficial #2 si existe
+      if (config.trackUnof2_id !== null && config.trackUnof2_id !== undefined) {
         document.querySelector('input[name="trackUnof2_id"]').value        = config.trackUnof2_id;
         document.querySelector('select[name="trackUnof2_protected"]').value = config.trackUnof2_protected ? 'true' : 'false';
         document.querySelector('input[name="trackUnof2_nombre"]').value     = config.trackUnof2_nombre;
@@ -93,6 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
     } catch (err) {
+      // No mostrar error si no existe configuración aún;
+      // en un entorno nuevo puede que aún no haya nada guardado.
       console.warn('No se pudo cargar configuración inicial:', err);
     }
   }
