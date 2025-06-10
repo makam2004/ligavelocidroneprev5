@@ -1,6 +1,6 @@
 // routes/rankingAnual.js
 import express from 'express';
-import supabase from '../supabaseClient'; // Si usas Supabase
+import supabase from '../supabaseClient.js'; 
 
 const router = express.Router();
 
