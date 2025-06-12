@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel Admin Avanzado - Liga Velocidrone</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section {
+      background: #2a2a2a;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border-left: 4px solid #007bff;
+    }
+    h1 { color: #ffcc00; }
+    h2 { color: #00bfff; margin-top: 0; }
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .status-card {
+      background: #333;
+      padding: 15px;
+      border-radius: 6px;
+      border-left: 3px solid #28a745;
+    }
+    .status-card.error { border-left-color: #dc3545; }
+    .status-card.warning { border-left-color: #ffc107; }
+    .form-group {
+      margin: 15px 0;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background: #444;
+      color: white;
+    }
+    button {
+      padding: 12px 20px;
+      margin: 10px 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-primary { background: #007bff; color: white; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-warning { background: #ffc107; color: black; }
+    .btn-danger { background: #dc3545; color: white; }
+    .btn-info { background: #17a2b8; color: white; }
+    .message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .message.success { background: #155724; border: 1px solid #28a745; }
+    .message.error { background: #721c24; border: 1px solid #dc3545; }
+    .message.info { background: #0c5460; border: 1px solid #17a2b8; }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #444;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      background: #333;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+    }
+    .tab.active { background: #007bff; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    .stats-table th, .stats-table td {
+      padding: 8px 12px;
+      border: 1px solid #555;
+      text-align: left;
+    }
+    .stats-table th { background: #444; }
+    pre {
+      background: #222;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎛️ Panel de Administración Avanzado</h1>
+    
+    <!-- Status del Sistema -->
+    <div class="section">
+      <h2>📊 Estado del Sistema</h2>
+      <div class="status-grid" id="statusGrid">
+        <div class="status-card">
+          <h4>🔄 Cargando...</h4>
+          <p>Obteniendo estado del sistema...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs de Navegación -->
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('config')">⚙️ Configuración</button>
+      <button class="tab" onclick="showTab('api')">🌐 API Manager</button>
+      <button class="tab" onclick="showTab('monitoring')">📈 Monitoreo</button>
+      <button class="tab" onclick="showTab('actions')">🎯 Acciones</button>
+    </div>
+
+    <!-- Tab: Configuración -->
+    <div id="config" class="tab-content active">
+      <div class="section">
+        <h2>⚙️ Configuración de Tracks</h2>
+        <form id="formTracks">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+              <h3>Track 1 - Race Mode</h3>
+              <div class="form-group">
+                <label>Escenario ID:</label>
+                <input name="track1_escena" type="number" required />
+              </div>
+              <div class="form-group">
+                <label>Pista ID:</label>
+                <input name="track1_pista" type="number" required />
+              </div>
+              <div class="form-group">
+                <label>API Track ID (opcional):</label>
+                <input name="track1_api_id" type="number" />
+              </div>
+            </div>
+            <div>
+              <h3>Track 2 - 3 Lap</h3>
+              <div class="form-group">
+                <label>Escenario ID:</label>
+                <input name="track2_escena" type="number" required />
+              </div>
+              <div class="form-group">
+                <label>Pista ID:</label>
+                <input name="track2_pista" type="number" required />
+              </div>
+              <div class="form-group">
+                <label>API Track ID (opcional):</label>
+                <input name="track2_api_id" type="number" />
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">💾 Actualizar Configuración</button>
+          <button type="button" class="btn-info" onclick="probarConfiguracion()">🧪 Probar Configuración</button>
+        </form>
+        <div id="mensajeConfig"></div>
+      </div>
+    </div>
+
+    <!-- Tab: API Manager -->
+    <div id="api" class="tab-content">
+      <div class="section">
+        <h2>🌐 Gestión de API Velocidrone</h2>
+        <div class="form-group">
+          <button class="btn-info" onclick="verificarAPI()">🔍 Verificar Estado API</button>
+          <button class="btn-warning" onclick="limpiarCacheAPI()">🗑️ Limpiar Cache</button>
+          <button class="btn-info" onclick="obtenerMetadatos()">📋 Obtener Metadatos</button>
+        </div>
+        <div id="apiStatus"></div>
+        <div id="apiMetadata"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Monitoreo -->
+    <div id="monitoring" class="tab-content">
+      <div class="section">
+        <h2>📈 Monitoreo del Sistema</h2>
+        <div class="form-group">
+          <button class="btn-success" onclick="verificarSalud()">🩺 Health Check</button>
+          <button class="btn-info" onclick="obtenerMetricas()">📊 Métricas</button>
+        </div>
+        <div id="healthStatus"></div>
+        <div id="metricas"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Acciones -->
+    <div id="actions" class="tab-content">
+      <div class="section">
+        <h2>🎯 Acciones Rápidas</h2>
+        <div class="form-group">
+          <button class="btn-success" onclick="commitRanking()">🏆 Commit Ranking Semanal</button>
+          <button class="btn-primary" onclick="enviarRankingTelegram()">📤 Enviar a Telegram</button>
+          <button class="btn-warning" onclick="testearHibrido()">🔄 Test Sistema Híbrido</button>
+        </div>
+        <div id="accionesResultados"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Cambio de tabs
+    function showTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(tabName).classList.add('active');
+    }
+
+    // Cargar estado del sistema al inicio
+    document.addEventListener('DOMContentLoaded', async () => {
+      await cargarEstadoSistema();
+      await cargarConfiguracionActual();
+    });
+
+    // Cargar estado del sistema
+    async function cargarEstadoSistema() {
+      try {
+        const [appInfo, health] = await Promise.all([
+          fetch('/api/app-info').then(r => r.json()),
+          fetch('/api/health/detailed').then(r => r.json())
+        ]);
+
+        const statusGrid = document.getElementById('statusGrid');
+        statusGrid.innerHTML = `
+          <div class="status-card ${appInfo.features.api ? '' : 'warning'}">
+            <h4>🌐 API Velocidrone</h4>
+            <p>${appInfo.features.api ? '✅ Configurada' : '⚠️ No configurada'}</p>
+          </div>
+          <div class="status-card ${health.status === 'healthy' ? '' : 'error'}">
+            <h4>🩺 Estado General</h4>
+            <p>${health.status === 'healthy' ? '✅ Saludable' : '❌ Problemas detectados'}</p>
+          </div>
+          <div class="status-card">
+            <h4>⏱️ Uptime</h4>
+            <p>${Math.floor(health.uptime / 3600)}h ${Math.floor((health.uptime % 3600) / 60)}m</p>
+          </div>
+          <div class="status-card ${appInfo.features.telegram_bot ? '' : 'warning'}">
+            <h4>🤖 Bot Telegram</h4>
+            <p>${appInfo.features.telegram_bot ? '✅ Activo' : '⚠️ No configurado'}</p>
+          </div>
+        `;
+      } catch (error) {
+        console.error('Error cargando estado:', error);
+        document.getElementById('statusGrid').innerHTML = `
+          <div class="status-card error">
+            <h4>❌ Error</h4>
+            <p>No se pudo cargar el estado del sistema</p>
+          </div>
+        `;
+      }
+    }
+
+    // Cargar configuración actual
+    async function cargarConfiguracionActual() {
+      try {
+        const config = await fetch('/api/configuracion-avanzada').then(r => r.json());
+        
+        if (config.tracks) {
+          const track1 = config.tracks[0];
+          const track2 = config.tracks[1];
+          
+          document.querySelector('[name="track1_escena"]').value = track1.escena_id;
+          document.querySelector('[name="track1_pista"]').value = track1.pista_id;
+          document.querySelector('[name="track1_api_id"]').value = track1.track_id_api || '';
+          
+          document.querySelector('[name="track2_escena"]').value = track2.escena_id;
+          document.querySelector('[name="track2_pista"]').value = track2.pista_id;
+          document.querySelector('[name="track2_api_id"]').value = track2.track_id_api || '';
+        }
+      } catch (error) {
+        console.error('Error cargando configuración:', error);
+      }
+    }
+
+    // Manejar envío de configuración
+    document.getElementById('formTracks').onsubmit = async (e) => {
+      e.preventDefault();
+      const formData = Object.fromEntries(new FormData(e.target));
+      const mensaje = document.getElementById('mensajeConfig');
+      
+      mensaje.innerHTML = '<div class="message info">🔄 Actualizando configuración...</div>';
+      
+      try {
+        const response = await fetch('/api/actualizar-configuracion-avanzada', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          mensaje.innerHTML = '<div class="message success">✅ Configuración actualizada correctamente</div>';
+          if (result.api_verification) {
+            mensaje.innerHTML += `<div class="message ${result.api_verification.success ? 'success' : 'error'}">
+              🔗 API: ${result.api_verification.message}
+            </div>`;
+          }
+        } else {
+          mensaje.innerHTML = `<div class="message error">❌ ${result.error}</div>`;
+        }
+      } catch (error) {
+        mensaje.innerHTML = `<div class="message error">❌ Error: ${error.message}</div>`;
+      }
+    };
+
+    // Verificar API
+    async function verificarAPI() {
+      const statusDiv = document.getElementById('apiStatus');
+      statusDiv.innerHTML = '<div class="message info">🔄 Verificando API...</div>';
+      
+      try {
+        const stats = await fetch('/api/velocidrone-api-stats').then(r => r.json());
+        
+        statusDiv.innerHTML = `
+          <div class="message ${stats.health.status === 'healthy' ? 'success' : 'error'}">
+            <h4>Estado API: ${stats.health.status === 'healthy' ? '✅ Saludable' : '❌ Problemas'}</h4>
+            <table class="stats-table">
+              <tr><th>Rate Limit</th><td>${stats.rateLimit.requests}/${stats.rateLimit.maxRequests} requests</td></tr>
+              <tr><th>Cache</th><td>${stats.cacheSize} entradas</td></tr>
+              <tr><th>Token</th><td>${stats.hasToken ? '✅ Configurado' : '❌ Faltante'}</td></tr>
+            </table>
+          </div>
+        `;
+      } catch (error) {
+        statusDiv.innerHTML = `<div class="message error">❌ Error verificando API: ${error.message}</div>`;
+      }
+    }
+
+    // Limpiar cache API
+    async function limpiarCacheAPI() {
+      try {
+        await fetch('/api/clear-api-cache', { method: 'POST' });
+        document.getElementById('apiStatus').innerHTML = '<div class="message success">✅ Cache API limpiado</div>';
+      } catch (error) {
+        document.getElementById('apiStatus').innerHTML = `<div class="message error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    // Obtener metadatos
+    async function obtenerMetadatos() {
+      const metadataDiv = document.getElementById('apiMetadata');
+      metadataDiv.innerHTML = '<div class="message info">🔄 Obteniendo metadatos...</div>';
+      
+      try {
+        const metadata = await fetch('/api/velocidrone-metadata').then(r => r.json());
+        
+        metadataDiv.innerHTML = `
+          <div class="message success">
+            <h4>📋 Metadatos API</h4>
+            <p><strong>Modelos:</strong> ${metadata.total.models} disponibles</p>
+            <p><strong>Escenarios:</strong> ${metadata.total.sceneries} disponibles</p>
+            <details>
+              <summary>Ver muestra de datos</summary>
+              <pre>${JSON.stringify(metadata, null, 2)}</pre>
+            </details>
+          </div>
+        `;
+      } catch (error) {
+        metadataDiv.innerHTML = `<div class="message error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    // Verificar salud del sistema
+    async function verificarSalud() {
+      const healthDiv = document.getElementById('healthStatus');
+      healthDiv.innerHTML = '<div class="message info">🔄 Verificando salud del sistema...</div>';
+      
+      try {
+        const health = await fetch('/api/health/detailed').then(r => r.json());
+        
+        const checksHtml = Object.entries(health.checks).map(([name, check]) => `
+          <tr>
+            <td>${name}</td>
+            <td>${check.status === 'healthy' ? '✅' : '❌'}</td>
+            <td>${check.duration || 'N/A'}ms</td>
+            <td>${check.error || 'OK'}</td>
+          </tr>
+        `).join('');
+        
+        healthDiv.innerHTML = `
+          <div class="message ${health.status === 'healthy' ? 'success' : 'error'}">
+            <h4>🩺 Estado General: ${health.status}</h4>
+            <table class="stats-table">
+              <thead>
+                <tr><th>Servicio</th><th>Estado</th><th>Tiempo</th><th>Detalles</th></tr>
+              </thead>
+              <tbody>${checksHtml}</tbody>
+            </table>
+          </div>
+        `;
+      } catch (error) {
+        healthDiv.innerHTML = `<div class="message error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    // Probar configuración
+    async function probarConfiguracion() {
+      const trackId = document.querySelector('[name="track1_api_id"]').value;
+      if (!trackId) {
+        alert('Ingresa un Track ID para probar');
+        return;
+      }
+      
+      const mensaje = document.getElementById('mensajeConfig');
+      mensaje.innerHTML = '<div class="message info">🧪 Probando configuración...</div>';
+      
+      try {
+        const result = await fetch('/api/probar-configuracion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ track_id: trackId, race_mode: 6 })
+        }).then(r => r.json());
+        
+        if (result.success) {
+          mensaje.innerHTML += `<div class="message success">✅ ${result.message}<br>
+            Resultados encontrados: ${result.resultados_encontrados}</div>`;
+        } else {
+          mensaje.innerHTML += `<div class="message error">❌ ${result.message}</div>`;
+        }
+      } catch (error) {
+        mensaje.innerHTML += `<div class="message error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    // Test sistema híbrido
+    async function testearHibrido() {
+      const resultados = document.getElementById('accionesResultados');
+      resultados.innerHTML = '<div class="message info">🔄 Probando sistema híbrido...</div>';
+      
+      try {
+        const result = await fetch('/api/tiempos-hibrido').then(r => r.json());
+        
+        if (result.data) {
+          const estadisticas = result.estadisticas;
+          resultados.innerHTML = `
+            <div class="message success">
+              <h4>✅ Sistema híbrido funcionando</h4>
+              <p><strong>Track 1:</strong> ${estadisticas.metodoUsado['Race Mode: Single Class'] || 'N/A'}</p>
+              <p><strong>Track 2:</strong> ${estadisticas.metodoUsado['3 Lap: Single Class'] || 'N/A'}</p>
+              <p><strong>Jugadores procesados:</strong> ${estadisticas.totalJugadores}</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultados.innerHTML = `<div class="message error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    // Commit ranking
+    async function commitRanking() {
+      if (!confirm('¿Confirmas el commit del ranking semanal?')) return;
+      
+      const resultados = document.getElementById('accionesResultados');
+      resultados.innerHTML = '<div class="message info">🔄 Realizando commit...</div>';
+      
+      try {
+        const result = await fetch('/api/commit-ranking', { method: 'POST' }).then(r => r.json());
+        resultados.innerHTML = `<div class="message success">✅ ${result.message || 'Commit realizado'}</div>`;
+      } catch (error) {
+        resultados.innerHTML = `<div class="message error">❌ Error: ${error.message}</div>`;
+      }
+    }
+
+    // Enviar ranking a Telegram
+    async function enviarRankingTelegram() {
+      const resultados = document.getElementById('accionesResultados');
+      resultados.innerHTML = '<div class="message info">🔄 Enviando a Telegram...</div>';
+      
+      try {
+        const result = await fetch('/api/enviar-ranking-telegram').then(r => r.json());
+        if (result.ok) {
+          resultados.innerHTML = '<div class="message success">✅ Ranking enviado a Telegram</div>';
+        } else {
+          resultados.innerHTML = `<div class="message error">❌ ${result.error}</div>`;
+        }
+      } catch (error) {
+        resultados.innerHTML = `<div class="message error">❌ Error: ${error.message}</div>`;
+      }
+    }
+  </script>
+</body>
+</html>

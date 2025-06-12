@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   contenedor.innerHTML = '<p>Cargando resultados...</p>';
 
   try {
-    const response = await fetch('/api/tiempos-mejorados');
+    const response = await fetch('/api/tiempos-hibrido');
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
 
