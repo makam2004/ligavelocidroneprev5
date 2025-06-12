@@ -8,7 +8,6 @@ import rateLimit from 'express-rate-limit';
 import supabase from './supabaseClient.js';
 import { generalLimiter, securityHeaders } from './middleware/security.js';
 import logger from './utils/logger.js';
-import healthRoutes from './routes/health.js';
 
 
 // Rutas existentes
