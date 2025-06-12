@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
 import rateLimit from 'express-rate-limit';
 import supabase from './supabaseClient.js';
-import { generalLimiter, securityHeaders } from './middleware/security.js';
+//import { generalLimiter, securityHeaders } from './middleware/security.js';
 import logger from './utils/logger.js';
 
 
