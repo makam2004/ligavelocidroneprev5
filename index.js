@@ -6,11 +6,15 @@ import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
 import rateLimit from 'express-rate-limit';
 import supabase from './supabaseClient.js';
+import { generalLimiter, securityHeaders } from './middleware/security.js';
+import logger from './utils/logger.js';
+import healthRoutes from './routes/health.js';
+
 
 // Rutas existentes
 import tiemposMejorados from './routes/tiemposMejorados.js';
 import adminRoutes from './routes/admin.js';
-import rankingRoutes from './routes/ranking.js';
+// import rankingRoutes from './routes/ranking.js';
 import commitRankingRoutes from './routes/commit_ranking.js';
 import telegramRoutes from './routes/telegram.js';
 import checkMejoras from './routes/checkMejoras.js';
@@ -173,6 +177,10 @@ app.use(telegramRoutes);
 app.use(checkMejoras);
 app.use(rankingAnualRouter);
 app.use(configuracionRouter);
+app.use(securityHeaders);
+app.use(generalLimiter);
+app.use(logger.expressMiddleware());
+app.use('/api', healthRoutes);
 
 // ─────────── NUEVAS RUTAS API HÍBRIDA ───────────
 app.use(tiemposHibrido);
