@@ -13,7 +13,7 @@ import logger from './utils/logger.js';
 // Rutas existentes
 import tiemposMejorados from './routes/tiemposMejorados.js';
 import adminRoutes from './routes/admin.js';
-/import rankingRoutes from './routes/ranking.js';
+import rankingRoutes from './routes/ranking.js';
 import commitRankingRoutes from './routes/commit_ranking.js';
 import telegramRoutes from './routes/telegram.js';
 import checkMejoras from './routes/checkMejoras.js';
